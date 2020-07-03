@@ -169,3 +169,8 @@ def main():
         os.mkdir(tokenizer_path)
     tokenizer.save_pretrained(tokenizer_path)
     logging.info(f"saved tokenizer at {tokenizer_path}")
+
+
+if __name__ == "__main__":
+    main()
+

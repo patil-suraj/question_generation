@@ -86,3 +86,7 @@ def main():
         f.write("\n".join(predictions))
     
     logging.info(f"Output saved at {args.output_path}")
+
+
+if __name__ == "__main__":
+    main()
