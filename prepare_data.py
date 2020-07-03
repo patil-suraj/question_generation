@@ -7,7 +7,9 @@ import torch
 import nlp
 from transformers import T5Tokenizer, BartTokenizer, HfArgumentParser
 
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class DataTrainingArguments:
@@ -30,7 +32,7 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "name for cached valid dataset"},
     )
-    valid_for_qg_only: Optional[str] = field(
+    valid_for_qg_only: bool = field(
         default=False,
         metadata={"help": "For multitask dataset valid split should contain only qg task or all tasks."}
     )
@@ -107,10 +109,41 @@ class DataProcessor:
         return encodings
 
 
+def filter_qa(example):
+    return example['task'] == 'qa'
+
+def filter_qg(example):
+    return example['task'] == 'qg'
+
+def filter_e2e_qg(example):
+    return example['task'] == 'e2e_qg'
+
+def filter_ans_ext(example):
+    return example['task'] == 'ans_ext'
+
+def filter_multi(example):
+    return example['task'] != 'e2e_qg'
+
+
+TASK_TO_FILTER_FN = {
+    'qa': filter_qa,
+    'qg': filter_qg,
+    'e2e_qg': filter_e2e_qg,
+    'ans_ext': filter_ans_ext,
+    'multi': filter_multi
+}
+
+
 def main():
     parser = HfArgumentParser((DataTrainingArguments,))
 
     data_args = parser.parse_args_into_dataclasses()[0]
+
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        level=logging.INFO
+    )
 
     if data_args.model_type == 't5':
         tokenizer = T5Tokenizer.from_pretrained("t5-base")
@@ -129,16 +162,12 @@ def main():
         max_target_length=data_args.max_target_length
     )
 
-    if data_args.task in ['qa', 'qg', 'ans_ext', 'e2e_qg']:
-        train_dataset = train_dataset.filter(lambda x: x['task'] == data_args.task)
-        valid_dataset = valid_dataset.filter(lambda x: x['task'] == data_args.task)
+    train_dataset = train_dataset.filter(TASK_TO_FILTER_FN[data_args.task])
+    if data_args.task == 'multi' and data_args.valid_for_qg_only:
+        logger.info("processing valid data only for qg task")
+        valid_dataset = valid_dataset.filter(filter_qg)
     else:
-        train_dataset = train_dataset.filter(lambda x: x['task'] != 'e2e_qg')
-        
-        if data_args.valid_for_qg_only:
-            valid_dataset = valid_dataset.filter(lambda x: x['task'] != 'qg')
-        else:
-            valid_dataset = valid_dataset.filter(lambda x: x['task'] != 'e2e_qg')
+        valid_dataset = valid_dataset.filter(TASK_TO_FILTER_FN[data_args.task])
 
     
     train_dataset = processor.process(train_dataset)
@@ -159,16 +188,16 @@ def main():
         valid_path = os.path.join("data", data_args.valid_file_name)
     
     torch.save(train_dataset, train_path)
-    logging.info(f"saved train dataset at {train_path}")
+    logger.info(f"saved train dataset at {train_path}")
     
     torch.save(valid_dataset, valid_path)
-    logging.info(f"saved validation dataset at {valid_path}")
+    logger.info(f"saved validation dataset at {valid_path}")
     
     tokenizer_path = f"{data_args.model_type}_qg_tokenizer"
-    if not os.path.exists():
+    if not os.path.exists(tokenizer_path):
         os.mkdir(tokenizer_path)
     tokenizer.save_pretrained(tokenizer_path)
-    logging.info(f"saved tokenizer at {tokenizer_path}")
+    logger.info(f"saved tokenizer at {tokenizer_path}")
 
 
 if __name__ == "__main__":
