@@ -61,6 +61,7 @@ class DataTrainingArguments:
         metadata={"help": "Path for cached valid dataset"},
     )
     data_dir: Optional[str] = field(
+        default=None,
         metadata={"help": "Path for data files"}, 
     )
     task: Optional[str] = field(
@@ -91,7 +92,7 @@ def main(args_file=None):
     if (len(sys.argv) == 2 and sys.argv[1].endswith(".json")) or args_file is not None:
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        args_file_path = os.path.abspath(sys.argv[1]) if args_file is not None else args_file
+        args_file_path = os.path.abspath(sys.argv[1]) if args_file is None else args_file
         model_args, data_args, training_args = parser.parse_json_file(json_file=args_file_path)
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
