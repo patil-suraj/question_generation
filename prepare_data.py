@@ -37,7 +37,7 @@ class DataTrainingArguments:
         metadata={"help": "For multitask dataset valid split should contain only qg task or all tasks."}
     )
     qg_format: Optional[str] = field(
-        default='prepend_qg_format',
+        default='highlight_qg_format',
         metadata={"help": "How to format inputs for que generation, 'highlight_qg_format' or 'prepend_qg_format'"}, 
     )
     max_source_length: Optional[int] = field(
