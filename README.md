@@ -31,13 +31,13 @@ Here the answer span is highlighted within the text with special highlight token
 
 ### answer extraction models
 
-As the answer aware models need answers for generating question, we need something which can extarct answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. For answer extraction. With T5, answer extarction is done using the text-to-format. 
+As the answer aware models need answers for generating question, we need something which can extarct answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. With T5, answer extarction is done using the text-to-format. 
 
 As the highlight format will need to know the position of extracted answer spans the input for answer extraction is processed as followes-
 
   1. split the text into senteces 
-  2. for each sentence that has answers, highlight the sentence with <hl> tokens.
-  3. for the target text join the answers in that sentence with <sep> tokens.
+  2. for each sentence that has answers, highlight the sentence with `<hl>` tokens.
+  3. for the target text join the answers in that sentence with `<sep>` tokens.
 
 For example for this text 
 
