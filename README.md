@@ -80,7 +80,7 @@ T5 model is fine-tuned in multi-task way using task prefixes as described in the
 
 ### End-to-End question generation (answer agnostic)
 
-In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discuess these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just proving the context. The questiosn are seperated by the `<sep>` token. Here's how the examples are processed
+In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discuess these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just providing the context. The questiosn are seperated by the `<sep>` token. Here's how the examples are processed
 
 input text: `Python is a programming language. Created by Guido van Rossum and first released in 1991.`
 
@@ -108,9 +108,10 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 ## Usage
 Use the pipeline whch mimics 🤗transformers pipeline for easy inference.
 
-The pipeline is divided into 2 tasks
+The pipeline is divided into 3 tasks
 1. `question-generation`: for single task question generation models.
 2. `multitask-qa-qg`: for multi-task qa,qg models.
+3. `e2e-qg`: for end-to-end question generation.
 
 #### Question Generation
 
@@ -285,17 +286,17 @@ Use the `eval.py` script for evaluting the model.
 
 ```bash
 python eval.py \
---model_name_or_path t5-base-qg-hl \
---valid_file_path valid_data_qg_hl_t5.pt \
---model_type t5 \
---num_beams 4 \
---max_decoding_length 32 \
---output_path hypothesis_t5-base-qg-hl.txt
+    --model_name_or_path t5-base-qg-hl \
+    --valid_file_path valid_data_qg_hl_t5.pt \
+    --model_type t5 \
+    --num_beams 4 \
+    --max_decoding_length 32 \
+    --output_path hypothesis_t5-base-qg-hl.txt
 ```
 
 This will save the output at {output_path} file.
 
-To calculate the metrics install the [nlg-eval](https://github.com/Maluuba/nlg-eval) and run
+To calculate the metrics install the [nlg-eval](https://github.com/Maluuba/nlg-eval) package and run
 
 ```bash
 nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.txt --no-skipthoughts --no-glove 
