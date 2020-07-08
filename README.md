@@ -1,38 +1,43 @@
-# Coming soon 🔜 ❓
+# Question Generation using pre-trained transformers
 
 ## Project Details
 Question generation is the task of automatically generating questions from a text paragraph. The most straight-forward way for this is answer aware question generation which is the reverse task of QA. In answer aware question generation the model is presented with a answer and the passage and asked to generate a question for that answer by considering the passage context. While there are many papers available for QG, it's still not as mainstream as QA. One of the reasons is most of the earlier papers use complicated models/processing and have no pre-trained models available. Few recent papers, specifically UniLM and ProphetNet have SOTA pre-trained weights availble for QG but the usage seems quite complicated. 
 
 This project is aimed as an open source study on question generation with pre-trained transformers (specifically seq-2-seq models) using straight-forward end-to-end methods without much complicated pipelines. The goal is to provide simplified data processing and training scripts and easy to use pipelines for inference.
+ 
 
-One of the obivious benifit of question generation models is that it can allow the creation of synthetic QA corpora for training QA models. 
-
-### Initial experiments
+## Initial experiments
 Initial experiments are conducted using the SQuADv1 dataset and T5 model with different input processing format as described below.
-**1. answer aware question generation**
+
+### answer aware question generation
 
 For answer aware models the input text can be processed in two ways.
-1. prepend format
+
+**1. prepend format:**
+
  Here the answer is simply added before the conext and seperated by sep token. For example
 
  `42 [SEP] 42 is the answer to life, the universe and everything.`
 
  for T5 model the input is processed like this
 
- answer: 42  context: 42 is the answer to life, the universe and everything.
+ `answer: 42  context: 42 is the answer to life, the universe and everything.`
 
-2. highlight format
+**2. highlight format**
+
 In this format the answer span is highlighted within the text with special highlight tokens.
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
-**answer extraction models**
+### answer extraction models
+
 As the answer aware models need answers for generating question, we need something which can extarct answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. For answer extraction. With T5, answer extarction is done using the text-to-format. 
 
 As the highlight format will need to know the position of extracted answer spans the input for answer extraction is processed as followes-
-    1. split the text into senteces 
-    2. for each sentence that has answers, highlight the sentence with <hl> tokens.
-    3. for the target text join the answers in that sentence with <sep> tokens.
+
+  1. split the text into senteces 
+  2. for each sentence that has answers, highlight the sentence with <hl> tokens.
+  3. for the target text join the answers in that sentence with <sep> tokens.
 
 For example for this text 
 
@@ -41,36 +46,35 @@ For example for this text
 following examples will be created
 
 Input text:
-
-<hl> Python is a programming language. <hl> Created by Guido van Rossum and first released in 1991.
+`<hl> Python is a programming language. <hl> Created by Guido van Rossum and first released in 1991.`
 
 target text:
-Python <sep>
+`Python <sep>`
 
 and 
 
 Input text:
-
-Python is a programming language. <hl> Created by Guido van Rossum and first released in 1991 <hl>.
+`Python is a programming language. <hl> Created by Guido van Rossum and first released in 1991 <hl>.`
 
 target text:
-Guido van Rossum <sep> 1991 <sep>
+`Guido van Rossum <sep> 1991 <sep>`
 
 At inference time the text is split into sentences and each sentence is highlighted.
 
-**2. Multitask QA-QG**
-For answer aware que generation we usually need 3 models, first which will extract answer like spans, second model will generate question on that answer and third will be a QA model which will take the question and produce an answer,
+### Multitask QA-QG
+
+For answer aware question generation we usually need 3 models, first which will extract answer like spans, second model will generate question on that answer and third will be a QA model which will take the question and produce an answer,
 then we can compare the two answers to see if the generated question is correct or not.
 
 Having 3 models for single task is lot of complexity, so goal is to create a multi-task model which can do all of these 3 tasks
 
-1. extract ans like spans
+1. extract answer like spans
 2. generate question based on the answer
 3. QA
 
 T5 model is fine-tuned in multi-task way using task prefixes as described in the paper.
 
-![t5-qa-qg](https://i.ibb.co/THk4tm5/t5-qa-qg.png)
+![t5-qa-qg](https://i.ibb.co/kG7HrXZ/t5-qa-qg-large.png)
 
 
 ## Results
