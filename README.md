@@ -1,7 +1,7 @@
 # Question Generation using pre-trained transformers
 
 ## Project Details
-Question generation is the task of automatically generating questions from a text paragraph. The most straight-forward way for this is answer aware question generation which is the reverse task of QA. In answer aware question generation the model is presented with a answer and the passage and asked to generate a question for that answer by considering the passage context. While there are many papers available for QG, it's still not as mainstream as QA. One of the reasons is most of the earlier papers use complicated models/processing and have no pre-trained models available. Few recent papers, specifically UniLM and ProphetNet have SOTA pre-trained weights availble for QG but the usage seems quite complicated. 
+Question generation is the task of automatically generating questions from a text paragraph. The most straight-forward way for this is answer aware question generation. In answer aware question generation the model is presented with the answer and the passage and asked to generate a question for that answer by considering the passage context. While there are many papers available for QG task, it's still not as mainstream as QA. One of the reasons is most of the earlier papers use complicated models/processing pipelines and have no pre-trained models available. Few recent papers, specifically UniLM and ProphetNet have SOTA pre-trained weights availble for QG but the usage seems quite complicated. 
 
 This project is aimed as an open source study on question generation with pre-trained transformers (specifically seq-2-seq models) using straight-forward end-to-end methods without much complicated pipelines. The goal is to provide simplified data processing and training scripts and easy to use pipelines for inference.
  
@@ -25,7 +25,7 @@ For answer aware models the input text can be processed in two ways.
 
 **2. highlight format**
 
-In this format the answer span is highlighted within the text with special highlight tokens.
+Here the answer span is highlighted within the text with special highlight tokens.
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
@@ -92,7 +92,7 @@ Results on the SQuAD1.0 dev set using above approaches. For decoding, beam searc
 
 For multitask qa-qg models the EM and F1 scores are privded as QA-EM and QA-F1.
 
-The [nlg-eval](https://github.com/Maluuba/nlg-eval) is used for calculating the metrics.
+The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculating the metrics.
 
 
 | Name                                                                       | BLEU-4  | METEOR  | ROUGE-L | QA-EM  | QA-F1  | QG-FORMAT |
@@ -106,11 +106,11 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) is used for calculating the 
 
 
 ## Usage
-Use the pipeline whch mimics HF transformers pipeline for easy inference.
+Use the pipeline whch mimics 🤗transformers pipeline for easy inference.
 
 The pipeline is divided into 2 tasks
-1. "question-generation": for single task question generation models.
-2. "multitask-qa-qg": for multi-task qa,qg models.
+1. `question-generation`: for single task question generation models.
+2. `multitask-qa-qg`: for multi-task qa,qg models.
 
 #### Question Generation
 
@@ -156,10 +156,9 @@ nlp("Python is a programming language. Created by Guido van Rossum and first rel
 ]
 ```
 
-By default the `question-generation` pipeline will download the [valhalla/t5-small-qg-hl](https://huggingface.co/valhalla/t5-small-qg-hl) model with `highlight` qg format.
+By default both pipelines will use the t5-small* models, to use the other models pass the path through `model` paramter.
 
-If you want to use prepend format then provide the path to the prepend model and set `qg_format` to `"prepend"`.
-For extracting answer like spans it uses [valhalla/t5-small-qa-qg-hl](https://huggingface.co/valhalla/t5-small-qa-qg-hl) model, you can provide a different model through `ans_model` parameter.
+By default the `question-generation` pipeline will download the [valhalla/t5-small-qg-hl](https://huggingface.co/valhalla/t5-small-qg-hl) model with `highlight` qg format. If you want to use prepend format then provide the path to the prepend model and set `qg_format` to `"prepend"`. For extracting answer like spans it uses [valhalla/t5-small-qa-qg-hl](https://huggingface.co/valhalla/t5-small-qa-qg-hl) model, you can provide a different model through `ans_model` parameter.
 
 The `multitask-qa-qg` model is for multitask models which can extract answer like spans, do qg and qa, so it won't need seperate `ans_model`. By default [valhalla/t5-small-qa-qg-hl](https://huggingface.co/valhalla/t5-small-qa-qg-hl) model is used with `highlight` format. If you want to use prepend format then provide the path to the prepend model and set `qg_format` to `"prepend"`
 
@@ -170,7 +169,7 @@ The `e2e-qg` pipeline is for end-to-end question generation. These models can ge
 ### Data processing 
 
 To support different data formats the trainer expects pre-processed cached dataset, so you can process the data the way you want.
-The cached dataset should be saved using `torch.save` and it should return a `dict` with `source_ids`, `target_ids`, `attention_mask` keys for `__getitem__`.
+The cached dataset should be saved using `torch.save` and it should return a `dict` with `source_ids`, `target_ids`, `attention_mask` keys from `__getitem__`.
 
 - `source_ids`: encoded source text
 - `target_ids`: encoded target text
@@ -303,4 +302,5 @@ nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.
 ```
 
 ## Relevant papers
+- https://arxiv.org/abs/1906.05416
 - https://arxiv.org/abs/2005.01107v1
