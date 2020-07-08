@@ -109,8 +109,8 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 ## Requirements
 ```
 transformers==3.0.0
-nlp==0.2.0
 nltk
+nlp==0.2.0 # only if you want to fine-tune.
 ```
 
 after installing `nltk` do
@@ -125,6 +125,8 @@ The pipeline is divided into 3 tasks
 1. `question-generation`: for single task question generation models.
 2. `multitask-qa-qg`: for multi-task qa,qg models.
 3. `e2e-qg`: for end-to-end question generation.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/patil-suraj/question_generation/blob/master/question_generation.ipynb)
 
 #### Question Generation
 
