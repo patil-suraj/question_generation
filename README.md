@@ -75,7 +75,7 @@ Having 3 models for single task is lot of complexity, so goal is to create a mul
 T5 model is fine-tuned in multi-task way using task prefixes as described in the paper.
 
 <p align="center">
-  <img width="80%", src="https://i.ibb.co/pRrXNr5/t5-ss.png">
+  <img width="80%", src="https://i.ibb.co/TBS3nsr/t5-ss-2.png">
 </p>
 
 ### End-to-End question generation (answer agnostic)
