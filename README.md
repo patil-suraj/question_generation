@@ -7,7 +7,7 @@ This project is aimed as an open source study on question generation with pre-tr
  
 
 ## Initial experiments
-Initial experiments are conducted using the SQuADv1 dataset and T5 model with different input processing format as described below.
+Initial experiments are conducted using the SQuADv1 dataset and T5 model with different input processing formats as described below.
 
 ### answer aware question generation
 
