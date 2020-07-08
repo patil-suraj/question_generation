@@ -78,17 +78,31 @@ T5 model is fine-tuned in multi-task way using task prefixes as described in the
   <img width="80%", src="https://i.ibb.co/pRrXNr5/t5-ss.png">
 </p>
 
+### End-to-End question generation (answer agnostic)
 
+In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discuess these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just proving the context. The questiosn are seperated by the `<sep>` token. Here's how the examples are processed
+
+input text: `Python is a programming language. Created by Guido van Rossum and first released in 1991.`
+
+target text: `Who created Python ? <sep> When was python released ? <sep>`
 
 ## Results
 
-|Name                 |BLEU-4 |METEOR |ROUGE-L|QA-EM |QA-F1 |QG-FORMAT|
-|---------------------|-------|-------|-------|------|------|---------|
-|t5-base-qg-highlight |21.3226|27.0854|43.5962|  -   |   -  |highlight|
-|t5-base-multitask-qg |21.0141|26.9113|43.2484|82.46 |90.272|highlight|
-|t5-small-multitask-qg|18.9872|25.2217|40.7893|76.121|84.904|highlight|
-|t5-small-qg-highlight|18.5921|24.9915|40.1886|  -   |   -  |highlight|
-|t5-small-qg-prepend  |18.2791|24.6722|39.958 |  -   |   -  |prepend  |
+Results on the SQuAD1.0 dev set using above approaches. For decoding, beam search with num_beams 4 is used with max decoding length set to 32. 
+
+For multitask qa-qg models the EM and F1 scores are privded as QA-EM and QA-F1.
+
+The [nlg-eval](https://github.com/Maluuba/nlg-eval) is used for calculating the metrics.
+
+
+| Name                                                                       | BLEU-4  | METEOR  | ROUGE-L | QA-EM  | QA-F1  | QG-FORMAT |
+|----------------------------------------------------------------------------|---------|---------|---------|--------|--------|-----------|
+| [t5-base-qg-hl](https://huggingface.co/valhalla/t5-base-qg-hl)             | 21.3226 | 27.0854 | 43.5962 | -      | -      | highlight |
+| [t5-base-qa-qg-hl](https://huggingface.co/valhalla/t5-base-qa-qg-hl)       | 21.0141 | 26.9113 | 43.2484 | 82.46  | 90.272 | highlight |
+| [t5-small-qa-qg-hl](https://huggingface.co/valhalla/t5-small-qa-qg-hl)     | 18.9872 | 25.2217 | 40.7893 | 76.121 | 84.904 | highlight |
+| [t5-small-qg-hl](https://huggingface.co/valhalla/t5-small-qg-hl)           | 18.5921 | 24.9915 | 40.1886 | -      | -      | highlight |
+| [t5-small-qg-prepend](https://huggingface.co/valhalla/t5-small-qg-prepend) | 18.2791 | 24.6722 | 39.958  | -      | -      | prepend   |
+
 
 
 ## Usage
@@ -264,6 +278,28 @@ args_dict = {
 
 # start training
 run_qg(args_dict)
+```
+
+### Evaluation
+
+Use the `eval.py` script for evaluting the model. 
+
+```bash
+python eval.py \
+--model_name_or_path t5-base-qg-hl \
+--valid_file_path valid_data_qg_hl_t5.pt \
+--model_type t5 \
+--num_beams 4 \
+--max_decoding_length 32 \
+--output_path hypothesis_t5-base-qg-hl.txt
+```
+
+This will save the output at {output_path} file.
+
+To calculate the metrics install the [nlg-eval](https://github.com/Maluuba/nlg-eval) and run
+
+```bash
+nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.txt --no-skipthoughts --no-glove 
 ```
 
 ## Relevant papers
