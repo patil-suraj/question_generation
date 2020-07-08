@@ -86,7 +86,7 @@ input text: `Python is a programming language. Created by Guido van Rossum and f
 
 target text: `Who created Python ? <sep> When was python released ? <sep>`
 
-All the training details can be found in [this](https://app.wandb.ai/psuraj/question-generation) wandb project
+**All the training details can be found in [this](https://app.wandb.ai/psuraj/question-generation) wandb project**
 
 ## Results
 
