@@ -86,6 +86,8 @@ input text: `Python is a programming language. Created by Guido van Rossum and f
 
 target text: `Who created Python ? <sep> When was python released ? <sep>`
 
+All the training details can be found in [this](https://app.wandb.ai/psuraj/question-generation) wandb project
+
 ## Results
 
 Results on the SQuAD1.0 dev set using above approaches. For decoding, beam search with num_beams 4 is used with max decoding length set to 32. 
@@ -104,6 +106,17 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 | [t5-small-qg-prepend](https://huggingface.co/valhalla/t5-small-qg-prepend) | 18.2791 | 24.6722 | 39.958  | -      | -      | prepend   |
 
 
+## Requirements
+```
+transformers==3.0.0
+nlp==0.2.0
+nltk
+```
+
+after installing `nltk` do
+```bash
+python -m nltk.downloader punkt
+```
 
 ## Usage
 Use the pipeline whch mimics 🤗transformers pipeline for easy inference.
