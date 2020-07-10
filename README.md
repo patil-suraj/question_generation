@@ -29,6 +29,8 @@ Here the answer span is highlighted within the text with special highlight token
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
+***Note: This idea of highlighting answer spans is takes from a paper, but I'm not being able to find the paper now. If you know this paper do let me know so that I can credit  the original authors.***
+
 ### answer extraction models
 
 As the answer aware models need answers for generating question, we need something which can extarct answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. With T5, answer extarction is done using the text-to-format. 
