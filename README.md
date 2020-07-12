@@ -1,5 +1,26 @@
 # Question Generation using 🤗transformers
 
+- [Question Generation using 🤗transformers](#question-generation-using-transformers)
+  - [Project Details](#project-details)
+  - [Initial experiments](#initial-experiments)
+    - [answer aware question generation](#answer-aware-question-generation)
+    - [answer extraction models](#answer-extraction-models)
+    - [Multitask QA-QG](#multitask-qa-qg)
+    - [End-to-End question generation (answer agnostic)](#end-to-end-question-generation-answer-agnostic)
+  - [Results](#results)
+  - [Requirements](#requirements)
+  - [Usage](#usage)
+      - [Question Generation](#question-generation)
+      - [Multitask QA-QG](#multitask-qa-qg-1)
+      - [End-to-end question generation (without answer supervision)](#end-to-end-question-generation-without-answer-supervision)
+  - [Fine-tuning](#fine-tuning)
+    - [Data processing](#data-processing)
+    - [training](#training)
+    - [Evaluation](#evaluation)
+  - [Applications 🚀](#applications-)
+  - [Relevant papers](#relevant-papers)
+
+
 ## Project Details
 Question generation is the task of automatically generating questions from a text paragraph. The most straight-forward way for this is answer aware question generation. In answer aware question generation the model is presented with the answer and the passage and asked to generate a question for that answer by considering the passage context. While there are many papers available for QG task, it's still not as mainstream as QA. One of the reasons is most of the earlier papers use complicated models/processing pipelines and have no pre-trained models available. Few recent papers, specifically UniLM and ProphetNet have SOTA pre-trained weights availble for QG but the usage seems quite complicated. 
 
@@ -29,7 +50,7 @@ Here the answer span is highlighted within the text with special highlight token
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
-***Note: This idea of highlighting answer spans is takes from a paper, but I'm not being able to find the paper now. If you know this paper do let me know so that I can credit  the original authors.***
+***Note: This idea of highlighting answer spans is taken from a paper, but I'm not being able to find the paper now. If you know this paper please let me know so that I can credit the original authors.***
 
 ### answer extraction models
 
@@ -318,6 +339,10 @@ To calculate the metrics install the [nlg-eval](https://github.com/Maluuba/nlg-e
 ```bash
 nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.txt --no-skipthoughts --no-glove 
 ```
+
+## Applications 🚀
+
+1. 
 
 ## Relevant papers
 - https://arxiv.org/abs/1906.05416
