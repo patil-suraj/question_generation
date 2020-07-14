@@ -34,13 +34,10 @@ class QGPipeline:
         self.qg_format = qg_format
 
         self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
-        print(self.device)
-
         self.model.to(self.device)
 
         if self.ans_model is not self.model:
             self.ans_model.to(self.device)
-
 
         assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
         
@@ -247,8 +244,8 @@ class E2EQGPipeline:
         #     )
 
         outs = self.model.generate(
-            input_ids=inputs['input_ids'].cuda(), 
-            attention_mask=inputs['attention_mask'].cuda(),
+            input_ids=inputs['input_ids'].to(self.device), 
+            attention_mask=inputs['attention_mask'].to(self.device),
             **generate_kwargs
         )
 
@@ -314,7 +311,7 @@ def pipeline(
     qg_format: Optional[str] = "highlight",
     ans_model: Optional = None,
     ans_tokenizer: Optional[Union[str, PreTrainedTokenizer]] = None,
-    use_cuda: Optional = True,
+    use_cuda: Optional[bool] = True,
     **kwargs,
 ):
     # Retrieve the task
