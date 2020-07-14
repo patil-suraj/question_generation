@@ -18,12 +18,12 @@ class QGPipeline:
     """Poor man's QG pipeline"""
     def __init__(
         self,
-        cpu_only: bool,
         model: PreTrainedModel,
         tokenizer: PreTrainedTokenizer,
         ans_model: PreTrainedModel,
         ans_tokenizer: PreTrainedTokenizer,
         qg_format: str,
+        use_cuda: bool
     ):
         self.model = model
         self.tokenizer = tokenizer
@@ -33,7 +33,7 @@ class QGPipeline:
 
         self.qg_format = qg_format
 
-        self.device = "cuda" if torch.cuda.is_available() and not cpu_only else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
         print(self.device)
 
         self.model.to(self.device)
@@ -202,15 +202,15 @@ class MultiTaskQAQGPipeline(QGPipeline):
 class E2EQGPipeline:
     def __init__(
         self,
-        cpu_only: bool,
         model: PreTrainedModel,
         tokenizer: PreTrainedTokenizer,
+        use_cuda: bool
     ) :
 
         self.model = model
         self.tokenizer = tokenizer
 
-        self.device = "cuda" if torch.cuda.is_available() and not cpu_only else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
         self.model.to(self.device)
 
         assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
@@ -309,12 +309,12 @@ SUPPORTED_TASKS = {
 
 def pipeline(
     task: str,
-    cpu_only: Optional = False,
     model: Optional = None,
     tokenizer: Optional[Union[str, PreTrainedTokenizer]] = None,
     qg_format: Optional[str] = "highlight",
     ans_model: Optional = None,
     ans_tokenizer: Optional[Union[str, PreTrainedTokenizer]] = None,
+    use_cuda: Optional = True,
     **kwargs,
 ):
     # Retrieve the task
@@ -381,8 +381,8 @@ def pipeline(
                 ans_model = AutoModelForSeq2SeqLM.from_pretrained(ans_model)
     
     if task == "e2e-qg":
-        return task_class(cpu_only=cpu_only, model=model, tokenizer=tokenizer)
+        return task_class(model=model, tokenizer=tokenizer, use_cuda=use_cuda)
     elif task == "question-generation":
-        return task_class(cpu_only=cpu_only, model=model, tokenizer=tokenizer, ans_model=ans_model, ans_tokenizer=ans_tokenizer, qg_format=qg_format)
+        return task_class(model=model, tokenizer=tokenizer, ans_model=ans_model, ans_tokenizer=ans_tokenizer, qg_format=qg_format, use_cuda=use_cuda)
     else:
-        return task_class(cpu_only=cpu_only, model=model, tokenizer=tokenizer, ans_model=model, ans_tokenizer=tokenizer, qg_format=qg_format)
+        return task_class(model=model, tokenizer=tokenizer, ans_model=model, ans_tokenizer=tokenizer, qg_format=qg_format, use_cuda=use_cuda)
