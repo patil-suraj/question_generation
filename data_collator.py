@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Tuple
 
-import numbers as np
+import numpy as np
 import torch
 
 

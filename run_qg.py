@@ -80,7 +80,7 @@ class DataTrainingArguments:
         default=32,
         metadata={"help": "Max input length for the target text"},
     )
-    mask_targets: Optional[bool] = field(
+    mask_targets: bool = field(
         default=False,
         metadata={"help": "whether to mask target tokens or not"}
     )
