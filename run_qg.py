@@ -80,6 +80,10 @@ class DataTrainingArguments:
         default=32,
         metadata={"help": "Max input length for the target text"},
     )
+    mask_targets: Optional[bool] = field(
+        default=False,
+        metadata={"help": "whether to mask target tokens or not"}
+    )
 
 
 def main(args_file=None):
@@ -161,7 +165,8 @@ def main(args_file=None):
         tokenizer=tokenizer,
         model_type=model_args.model_type,
         mode="training",
-        using_tpu=training_args.tpu_num_cores is not None
+        using_tpu=training_args.tpu_num_cores is not None,
+        mask_targets=data_args.mask_targets
     )
 
     # Initialize our Trainer
