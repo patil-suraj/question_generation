@@ -84,6 +84,10 @@ class DataTrainingArguments:
         default=False,
         metadata={"help": "whether to mask target tokens or not"}
     )
+    mlm_prob: Optional[float] = field(
+        default=0.15,
+        metadata={"help": "Masking probability"}
+    )
 
 
 def main(args_file=None):
@@ -166,7 +170,8 @@ def main(args_file=None):
         model_type=model_args.model_type,
         mode="training",
         using_tpu=training_args.tpu_num_cores is not None,
-        mask_targets=data_args.mask_targets
+        mask_targets=data_args.mask_targets,
+        mlm_prob=data_args.mlm_prob
     )
 
     # Initialize our Trainer
