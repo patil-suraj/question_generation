@@ -19,12 +19,13 @@ def trim_batch(
 # this is necessacry because the trainer directly passes this dict as arguments to the model
 # so make sure the keys match the parameter names of the forward method
 class T2TDataCollator():
-    def __init__(self, tokenizer, model_type="t5", mode='training', using_tpu=False, mask_targets=False):
+    def __init__(self, tokenizer, model_type="t5", mode='training', using_tpu=False, mask_targets=False, mlm_prob=0.15):
         self.tokenizer = tokenizer
         self.model_type = model_type
         self.mode = mode
         self.using_tpu = using_tpu
         self.mask_targets = mask_targets
+        self.mlm_prob = mlm_prob
 
     def __call__(self, batch: List) -> Dict[str, torch.Tensor]:
         """
@@ -47,11 +48,11 @@ class T2TDataCollator():
             lm_labels = target_ids.clone()
             if self.mask_targets:
                 decoder_input_ids = self._shift_right_t5(target_ids)
-                decoder_input_ids, _ = self.mask_tokens(decoder_input_ids)
+                decoder_input_ids, lm_labels = self.mask_tokens(decoder_input_ids)
             else:
                 decoder_input_ids = None
             
-            if self.mode == 'training':
+            if self.mode == 'training' and not self.mask_targets:
                 lm_labels[lm_labels[:, :] == pad_token_id] = -100
         else:
             decoder_input_ids = target_ids[:, :-1].contiguous()
@@ -74,7 +75,7 @@ class T2TDataCollator():
         """
         Prepare masked tokens inputs/labels for masked language modeling: 80% MASK, 10% random, 10% original.
         """
-        mlm_probability = 0.15
+        mlm_probability = self.mlm_prob
         labels = inputs.clone()
         # We sample a few tokens in each sequence for masked-LM training (with probability args.mlm_probability defaults to 0.15 in Bert/RoBERTa)
         probability_matrix = torch.full(labels.shape, mlm_probability)
