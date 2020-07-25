@@ -83,7 +83,7 @@ class T2TDataCollator():
             self.tokenizer.get_special_tokens_mask(val, already_has_special_tokens=True) for val in labels.tolist()
         ]
         special_tokens_mask = np.array(special_tokens_mask)
-        special_tokens_mask[inputs == 1] = 1
+        special_tokens_mask[inputs == 1] = 0
         probability_matrix.masked_fill_(torch.tensor(special_tokens_mask, dtype=torch.bool), value=0.0)
         if self.tokenizer._pad_token is not None:
             padding_mask = labels.eq(self.tokenizer.pad_token_id)
