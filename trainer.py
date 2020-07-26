@@ -9,7 +9,6 @@ from transformers.file_utils import is_apex_available
 if is_apex_available():
     from apex import amp
 
-from run_qg import ModelArguments
 from utils import label_smoothed_nll_loss
 
 class Trainer(HFTrainer):
@@ -26,8 +25,7 @@ class Trainer(HFTrainer):
             if isinstance(v, torch.Tensor):
                 inputs[k] = v.to(self.args.device)
 
-        if self.args.past_index >= 0 and self._past is not None:
-            inputs["mems"] = self._past
+
         # Our model outputs do not work with DataParallel, so forcing return tuple.
         if isinstance(model, nn.DataParallel):
             inputs["return_tuple"] = True
@@ -42,9 +40,6 @@ class Trainer(HFTrainer):
             loss, nll_loss = label_smoothed_nll_loss(
                 lprobs, labels, self.label_smoothing,
             )
-
-        if self.args.past_index >= 0:
-            self._past = outputs[self.args.past_index]
 
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
