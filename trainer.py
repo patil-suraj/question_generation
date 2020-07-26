@@ -35,10 +35,11 @@ class Trainer(HFTrainer):
             loss = outputs[0]  # model outputs are always tuple in transformers (see doc)
         else:
             labels = inputs.pop("labels")
+            labels[labels == -100] = model.config.pad_token_id
             outputs = model(**inputs)
             lprobs = torch.nn.functional.log_softmax(outputs[0], dim=-1)
             loss, nll_loss = label_smoothed_nll_loss(
-                lprobs, labels, self.label_smoothing,
+                lprobs, labels, self.label_smoothing, ignore_index=model.config.pad_token_id
             )
 
         if self.args.n_gpu > 1:
