@@ -16,12 +16,13 @@ from transformers import (
     BartTokenizer,
     HfArgumentParser,
     DataCollator,
-    Trainer,
     TrainingArguments,
     set_seed,
 )
 
+from trainer import Trainer
 from data_collator import T2TDataCollator
+from utils import freeze_embeds, assert_not_all_frozen
 
 MODEL_TYPE_TO_TOKENIZER = {
     "t5": T5Tokenizer,
@@ -47,6 +48,14 @@ class ModelArguments:
     )
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
+    )
+    label_smoothing: Optional[float] = field(
+        default=0,
+        metadata={"help": "label smoothing rate, set to > 0 if you want to enable lable smoothing"}
+    )
+    freeze_embeds: bool = field(
+        default=False,
+        metadata={"help": "Freeze token embeddings and positional embeddings for bart, just token embeddings for t5."}
     )
 
 @dataclass
@@ -148,6 +157,11 @@ def main(args_file=None):
 
     model.resize_token_embeddings(len(tokenizer))
 
+    if model_args.freeze_embeds:
+        logger.info("freezing embeddings of the model")
+        freeze_embeds(model)
+        assert_not_all_frozen(model)
+
     # Get datasets
     logger.info('loading dataset')
     
@@ -171,7 +185,8 @@ def main(args_file=None):
         train_dataset=train_dataset,
         eval_dataset=valid_dataset,
         data_collator=data_collator,
-        prediction_loss_only=True
+        prediction_loss_only=True,
+        label_smoothing=model_args.label_smoothing
     )
 
     # disable wandb console logs
