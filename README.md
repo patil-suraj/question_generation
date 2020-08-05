@@ -36,7 +36,7 @@ For answer aware models the input text can be processed in two ways.
 
 **1. prepend format:**
 
- Here the answer is simply added before the conext and seperated by sep token. For example
+ Here the answer is simply added before the context and seperated by sep token. For example
 
  `42 [SEP] 42 is the answer to life, the universe and everything.`
 
@@ -50,15 +50,15 @@ Here the answer span is highlighted within the text with special highlight token
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
-This idea is prposed in the "A Recurrent BERT-based Model for Question Generation" [paper](https://www.aclweb.org/anthology/D19-5821.pdf). See section 4.3 
+This idea is proposed in the "A Recurrent BERT-based Model for Question Generation" [paper](https://www.aclweb.org/anthology/D19-5821.pdf). See section 4.3 
 
 ### answer extraction models
 
-As the answer aware models need answers for generating question, we need something which can extarct answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. With T5, answer extarction is done using the text-to-format. 
+As the answer aware models need answers for generating question, we need something which can extract answer like spans from the text. This can be done using various methods like NER, noun-phrase extarction etc. But here a model is trained to extract answer like spans, to see how it'll work. With T5, answer extarction is done using the text-to-format. 
 
-As the highlight format will need to know the position of extracted answer spans the input for answer extraction is processed as followes-
+As the highlight format will need to know the position of extracted answer spans the input for answer extraction is processed as follows
 
-  1. split the text into senteces 
+  1. split the text into senteces. 
   2. for each sentence that has answers, highlight the sentence with `<hl>` tokens.
   3. for the target text join the answers in that sentence with `<sep>` tokens.
 
@@ -103,7 +103,7 @@ T5 model is fine-tuned in multi-task way using task prefixes as described in the
 
 ### End-to-End question generation (answer agnostic)
 
-In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discuess these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just providing the context. The questiosn are seperated by the `<sep>` token. Here's how the examples are processed
+In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discusses these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just providing the context. The questions are seperated by the `<sep>` token. Here's how the examples are processed
 
 input text: `Python is a programming language. Created by Guido van Rossum and first released in 1991.`
 
