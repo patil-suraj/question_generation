@@ -50,7 +50,7 @@ Here the answer span is highlighted within the text with special highlight token
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
-***Note: This idea of highlighting answer spans is taken from a paper, but I'm not being able to find the paper now. If you know this paper please let me know so that I can credit the original authors.***
+This idea is prposed in the "A Recurrent BERT-based Model for Question Generation" [paper](https://www.aclweb.org/anthology/D19-5821.pdf). See section 4.3 
 
 ### answer extraction models
 
@@ -347,4 +347,5 @@ nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.
 
 ## Relevant papers
 - https://arxiv.org/abs/1906.05416
+- https://www.aclweb.org/anthology/D19-5821/
 - https://arxiv.org/abs/2005.01107v1
