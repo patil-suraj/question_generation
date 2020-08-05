@@ -50,7 +50,7 @@ Here the answer span is highlighted within the text with special highlight token
 
 `<hl> 42 <hl> is the answer to life, the universe and everything.`
 
-This idea is prposed in the "A Recurrent BERT-based Model for Question Generation" [paper](https://www.aclweb.org/anthology/D19-5821.pdf). See section 4.3 
+This idea is proposed in the "A Recurrent BERT-based Model for Question Generation" [paper](https://www.aclweb.org/anthology/D19-5821.pdf). See section 4.3 
 
 ### answer extraction models
 
