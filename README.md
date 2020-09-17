@@ -222,7 +222,7 @@ The datasets will be saved in `data/` directory. You should provide filenames us
 
 **process data for single task question generation with highlight_qg_format**
 ```bash
-python question_generation.prepare_data.py \
+python -m question_generation.prepare_data.py \
     --task qg \
     --model_type t5 \
     --dataset_path data/squad_multitask/ \
@@ -238,7 +238,7 @@ python question_generation.prepare_data.py \
 `valid_for_qg_only` argument is used to decide if the validation set should only contain data for qg task. For my multi-task experiments I used validation data with only qg task so that the eval loss curve can be easly compared with other single task models
 
 ```bash
-python question_generation.prepare_data.py \
+python -m question_generation.prepare_data.py \
     --task multi \
     --valid_for_qg_only \ 
     --model_type t5 \
@@ -252,7 +252,7 @@ python question_generation.prepare_data.py \
 
 **process dataset for end-to-end question generation**
 ```bash
-python question_generation.prepare_data.py \
+python -m question_generation.prepare_data.py \
     --task e2e_qg \
     --valid_for_qg_only \ 
     --model_type t5 \
@@ -269,7 +269,7 @@ Use the `run_qg.py` script to  start training. It uses transformers `Trainer` cl
 
 
 ```bash
-python question_generation.run_qg.py \
+python -m question_generation.run_qg.py \
     --model_name_or_path t5-small \
     --model_type t5 \
     --tokenizer_name_or_path t5_qg_tokenizer \
@@ -291,7 +291,7 @@ python question_generation.run_qg.py \
 or if you want to train it from script or notebook then
 
 ```python3
-from run_qg import run_qg
+from question_generation import run_qg
 
 args_dict = {
     "model_name_or_path": "t5-small",
@@ -321,7 +321,7 @@ run_qg(args_dict)
 Use the `eval.py` script for evaluting the model. 
 
 ```bash
-python question_generation.eval.py \
+python -m question_generation.eval.py \
     --model_name_or_path t5-base-qg-hl \
     --valid_file_path valid_data_qg_hl_t5.pt \
     --model_type t5 \

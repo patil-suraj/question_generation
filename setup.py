@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from smart_config import __version__
+from question_generation import __version__
 
 with open("README.md", "r") as f:
     long_description = f.read()
