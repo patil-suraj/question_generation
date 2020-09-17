@@ -131,9 +131,7 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 
 ## Requirements
 ```
-transformers==3.0.0
-nltk
-nlp==0.2.0 # only if you want to fine-tune.
+python -m pip install https://github.com/patil-suraj/question_generation.git
 ```
 
 after installing `nltk` do
@@ -154,7 +152,7 @@ The pipeline is divided into 3 tasks
 #### Question Generation
 
 ```python3
-from pipelines import pipeline
+from question_generation import pipeline
 
 nlp = pipeline("question-generation")
 nlp("42 is the answer to life, the universe and everything.")
@@ -224,7 +222,7 @@ The datasets will be saved in `data/` directory. You should provide filenames us
 
 **process data for single task question generation with highlight_qg_format**
 ```bash
-python prepare_data.py \
+python question_generation.prepare_data.py \
     --task qg \
     --model_type t5 \
     --dataset_path data/squad_multitask/ \
@@ -240,7 +238,7 @@ python prepare_data.py \
 `valid_for_qg_only` argument is used to decide if the validation set should only contain data for qg task. For my multi-task experiments I used validation data with only qg task so that the eval loss curve can be easly compared with other single task models
 
 ```bash
-python prepare_data.py \
+python question_generation.prepare_data.py \
     --task multi \
     --valid_for_qg_only \ 
     --model_type t5 \
@@ -254,7 +252,7 @@ python prepare_data.py \
 
 **process dataset for end-to-end question generation**
 ```bash
-python prepare_data.py \
+python question_generation.prepare_data.py \
     --task e2e_qg \
     --valid_for_qg_only \ 
     --model_type t5 \
@@ -271,7 +269,7 @@ Use the `run_qg.py` script to  start training. It uses transformers `Trainer` cl
 
 
 ```bash
-python run_qg.py \
+python question_generation.run_qg.py \
     --model_name_or_path t5-small \
     --model_type t5 \
     --tokenizer_name_or_path t5_qg_tokenizer \
@@ -323,7 +321,7 @@ run_qg(args_dict)
 Use the `eval.py` script for evaluting the model. 
 
 ```bash
-python eval.py \
+python question_generation.eval.py \
     --model_name_or_path t5-base-qg-hl \
     --valid_file_path valid_data_qg_hl_t5.pt \
     --model_type t5 \

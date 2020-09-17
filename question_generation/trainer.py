@@ -9,7 +9,7 @@ from transformers.file_utils import is_apex_available
 if is_apex_available():
     from apex import amp
 
-from utils import label_smoothed_nll_loss
+from question_generation.utils import label_smoothed_nll_loss
 
 class Trainer(HFTrainer):
     def __init__(self, label_smoothing: float = 0, **kwargs):
