@@ -131,7 +131,7 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 
 ## Requirements
 ```
-python -m pip install https://github.com/patil-suraj/question_generation.git
+python -m pip install git+https://github.com/patil-suraj/question_generation.git
 ```
 
 after installing `nltk` do
