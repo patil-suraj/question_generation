@@ -1,6 +1,15 @@
 import itertools
 import logging
 from typing import Optional, Dict, Union
+import nltk
+
+def _nltk_downloader():
+    try:
+        nltk.download('punkt',quiet=True)
+    except LookupError as e:
+        print(e)
+
+_nltk_downloader()
 
 from nltk import sent_tokenize
 
