@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: |
         python setup.py sdist bdist_wheel
-    - name: Archive pytest results
+    - name: Archive Distribution Files
       uses: actions/upload-artifact@v1
       with:
         name: distribution
