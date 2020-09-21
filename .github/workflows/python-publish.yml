@@ -31,5 +31,5 @@ jobs:
     - name: Archive Distribution Files
       uses: actions/upload-artifact@v1
       with:
-        name: distribution
-        path: ./dist
+        name: wheel
+        path: ./dist/question_generation-**.whl
