@@ -66,6 +66,7 @@ def generate_onnx_representation(model, encoder_path, decoder_path):
         output_names=["lm_logits"],
         dynamic_axes={
             "input_ids": {0: "batch", 1: "sequence"},
+            "encoder_hidden_states": {0: "batch", 1: "sequence"},
             "lm_logits": {0: "batch", 1: "sequence"},
         },
     )
