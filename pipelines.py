@@ -313,7 +313,7 @@ def pipeline(
         raise KeyError("Unknown task {}, available tasks are {}".format(task, list(SUPPORTED_TASKS.keys())))
 
     if onnx:
-        assert onnx_path is not None, "`onnx_path` can't be `None` when `onnx` is set to `True`" 
+        assert onnx_path is not None, "`onnx_path` can't be `None` when `onnx` is set to `True`"
 
     targeted_task = SUPPORTED_TASKS[task]
     task_class = targeted_task["impl"]
