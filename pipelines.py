@@ -6,6 +6,8 @@ import torch
 from nltk import sent_tokenize
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
+from onnx_t5 import OnnxT5
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,27 +22,32 @@ class QGPipeline:
         ans_tokenizer: PreTrainedTokenizer,
         qg_format: str,
         use_cuda: bool,
+        onnx: Optional[bool] = False,
+        onnx_path: Optional[str] = None,
     ):
+        self.onnx = onnx
+        self.onnx_path = onnx_path
         self.model = model
         self.tokenizer = tokenizer
-
         self.ans_model = ans_model
         self.ans_tokenizer = ans_tokenizer
-
         self.qg_format = qg_format
-
         self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
-        self.model.to(self.device)
 
-        if self.ans_model is not self.model:
-            self.ans_model.to(self.device)
-
-        assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
-
-        if "T5ForConditionalGeneration" in self.model.__class__.__name__:
-            self.model_type = "t5"
+        if self.onnx:
+            self.model = OnnxT5(model, onnx_path)
+            self.ans_model = self.model if model == ans_model else OnnxT5(ans_model, onnx_path)
         else:
-            self.model_type = "bart"
+            self.model.to(self.device)
+            if self.ans_model is not self.model:
+                self.ans_model.to(self.device)
+
+        # assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
+
+        # if "T5ForConditionalGeneration" in self.model.__class__.__name__:
+        #     self.model_type = "t5"
+        # else:
+        #     self.model_type = "bart"
 
     def __call__(self, inputs: str):
         inputs = " ".join(inputs.split())
@@ -62,10 +69,12 @@ class QGPipeline:
 
     def _generate_questions(self, inputs):
         inputs = self._tokenize(inputs, padding=True, truncation=True)
+        if not self.onnx:
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         outs = self.model.generate(
-            input_ids=inputs["input_ids"].to(self.device),
-            attention_mask=inputs["attention_mask"].to(self.device),
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             max_length=32,
             num_beams=4,
         )
@@ -76,10 +85,12 @@ class QGPipeline:
     def _extract_answers(self, context):
         sents, inputs = self._prepare_inputs_for_ans_extraction(context)
         inputs = self._tokenize(inputs, padding=True, truncation=True)
+        if not self.onnx:
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         outs = self.ans_model.generate(
-            input_ids=inputs["input_ids"].to(self.device),
-            attention_mask=inputs["attention_mask"].to(self.device),
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             max_length=32,
         )
 
@@ -113,8 +124,6 @@ class QGPipeline:
                 source_text = "%s %s" % (source_text, sent)
                 source_text = source_text.strip()
 
-            if self.model_type == "t5":
-                source_text = source_text + " </s>"
             inputs.append(source_text)
 
         return sents, inputs
@@ -137,8 +146,6 @@ class QGPipeline:
 
                 source_text = " ".join(sents_copy)
                 source_text = f"generate question: {source_text}"
-                if self.model_type == "t5":
-                    source_text = source_text + " </s>"
 
                 inputs.append({"answer": answer_text, "source_text": source_text})
 
@@ -149,9 +156,6 @@ class QGPipeline:
         examples = []
         for answer in flat_answers:
             source_text = f"answer: {answer} context: {context}"
-            if self.model_type == "t5":
-                source_text = source_text + " </s>"
-
             examples.append({"answer": answer, "source_text": source_text})
         return examples
 
@@ -170,17 +174,17 @@ class MultiTaskQAQGPipeline(QGPipeline):
 
     def _prepare_inputs_for_qa(self, question, context):
         source_text = f"question: {question}  context: {context}"
-        if self.model_type == "t5":
-            source_text = source_text + " </s>"
         return source_text
 
     def _extract_answer(self, question, context):
         source_text = self._prepare_inputs_for_qa(question, context)
         inputs = self._tokenize([source_text], padding=False)
+        if not self.onnx:
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         outs = self.model.generate(
-            input_ids=inputs["input_ids"].to(self.device),
-            attention_mask=inputs["attention_mask"].to(self.device),
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             max_length=16,
         )
 
@@ -189,20 +193,27 @@ class MultiTaskQAQGPipeline(QGPipeline):
 
 
 class E2EQGPipeline:
-    def __init__(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, use_cuda: bool):
+    def __init__(
+        self,
+        model: Union[str, PreTrainedModel],
+        tokenizer: PreTrainedTokenizer,
+        use_cuda: bool,
+        onnx: Optional[bool] = False,
+        onnx_path: Optional[str] = None,
+    ):
 
         self.model = model
         self.tokenizer = tokenizer
-
+        self.onnx = onnx
+        self.onnx_path = onnx_path
         self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
-        self.model.to(self.device)
 
-        assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
-
-        if "T5ForConditionalGeneration" in self.model.__class__.__name__:
-            self.model_type = "t5"
+        if self.onnx:
+            self.model = OnnxT5(model, onnx_path)
         else:
-            self.model_type = "bart"
+            self.model.to(self.device)
+
+        # assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
 
         self.default_generate_kwargs = {
             "max_length": 256,
@@ -229,10 +240,12 @@ class E2EQGPipeline:
         #             max_length, input_length
         #         )
         #     )
+        if not self.onnx:
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         outs = self.model.generate(
-            input_ids=inputs["input_ids"].to(self.device),
-            attention_mask=inputs["attention_mask"].to(self.device),
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             **generate_kwargs,
         )
 
@@ -243,8 +256,6 @@ class E2EQGPipeline:
 
     def _prepare_inputs_for_e2e_qg(self, context):
         source_text = f"generate questions: {context}"
-        if self.model_type == "t5":
-            source_text = source_text + " </s>"
 
         inputs = self._tokenize([source_text], padding=False)
         return inputs
@@ -293,11 +304,16 @@ def pipeline(
     ans_model: Optional = None,
     ans_tokenizer: Optional[Union[str, PreTrainedTokenizer]] = None,
     use_cuda: Optional[bool] = True,
+    onnx: Optional[bool] = False,
+    onnx_path: Optional[str] = None,
     **kwargs,
 ):
     # Retrieve the task
     if task not in SUPPORTED_TASKS:
         raise KeyError("Unknown task {}, available tasks are {}".format(task, list(SUPPORTED_TASKS.keys())))
+
+    if onnx:
+        assert onnx_path is not None, "`onnx_path` can't be `None` when `onnx` is set to `True`" 
 
     targeted_task = SUPPORTED_TASKS[task]
     task_class = targeted_task["impl"]
@@ -326,7 +342,7 @@ def pipeline(
             tokenizer = AutoTokenizer.from_pretrained(tokenizer)
 
     # Instantiate model if needed
-    if isinstance(model, str):
+    if isinstance(model, str) and not onnx:
         model = AutoModelForSeq2SeqLM.from_pretrained(model)
 
     if task == "question-generation":
@@ -334,7 +350,6 @@ def pipeline(
             # load default ans model
             ans_model = targeted_task["default"]["ans_model"]
             ans_tokenizer = AutoTokenizer.from_pretrained(ans_model)
-            ans_model = AutoModelForSeq2SeqLM.from_pretrained(ans_model)
         else:
             # Try to infer tokenizer from model or config name (if provided as str)
             if ans_tokenizer is None:
@@ -355,11 +370,16 @@ def pipeline(
                 else:
                     ans_tokenizer = AutoTokenizer.from_pretrained(ans_tokenizer)
 
-            if isinstance(ans_model, str):
-                ans_model = AutoModelForSeq2SeqLM.from_pretrained(ans_model)
+        if isinstance(ans_model, str) and not onnx:
+            ans_model = AutoModelForSeq2SeqLM.from_pretrained(ans_model)
 
+    extra_pipeline_args = {
+        "use_cuda": use_cuda,
+        "onnx": onnx,
+        "onnx_path": onnx_path,
+    }
     if task == "e2e-qg":
-        return task_class(model=model, tokenizer=tokenizer, use_cuda=use_cuda)
+        return task_class(model=model, tokenizer=tokenizer, **extra_pipeline_args)
     elif task == "question-generation":
         return task_class(
             model=model,
@@ -367,7 +387,7 @@ def pipeline(
             ans_model=ans_model,
             ans_tokenizer=ans_tokenizer,
             qg_format=qg_format,
-            use_cuda=use_cuda,
+            **extra_pipeline_args,
         )
     else:
         return task_class(
@@ -376,5 +396,5 @@ def pipeline(
             ans_model=model,
             ans_tokenizer=tokenizer,
             qg_format=qg_format,
-            use_cuda=use_cuda,
+            **extra_pipeline_args,
         )
