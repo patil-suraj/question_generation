@@ -1,3 +1,4 @@
+import inspect
 import logging
 import os
 from pathlib import Path
@@ -123,13 +124,19 @@ class T5Decoder(torch.nn.Module):
         self.config = config
 
     def forward(self, input_ids, encoder_hidden_states, attention_mask=None, past_key_values=None):
+        past_arg_key = (
+            "past_key_value_states"
+            if "past_key_value_states" in inspect.getargspec(self.decoder.forward)[0]
+            else past_key_values
+        )
+        past_arg = {past_arg_key: past_key_values}
         decoder_output = self.decoder(
             input_ids=input_ids,
             encoder_attention_mask=attention_mask,
             encoder_hidden_states=encoder_hidden_states,
-            past_key_value_states=past_key_values,
             use_cache=True,
             return_dict=True,
+            **past_arg,
         )
         past_key_values = decoder_output.past_key_values
         sequence_output = decoder_output.last_hidden_state
