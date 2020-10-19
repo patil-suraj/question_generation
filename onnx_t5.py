@@ -75,7 +75,7 @@ def generate_onnx_representation(model, encoder_path, lm_path):
     )
 
     encoder_out = simplified_encoder(input_ids, attention_mask)
-    decoder_out = decoder(input_ids, encoder_out)
+    decoder_out, _ = decoder(input_ids, encoder_out)
     _ = torch.onnx.export(
         lm_head,
         decoder_out,
@@ -160,10 +160,12 @@ class OnnxT5(GenerationMixin):
 
         self.encoder_sess = create_model_for_provider(self.encoder_path.as_posix(), "CPUExecutionProvider")
         self.lm_sess = create_model_for_provider(self.lm_head_path.as_posix(), "CPUExecutionProvider")
-        
+
         self.config = T5Config.from_pretrained(model_name_or_path)
         decoder = T5ForConditionalGeneration.from_pretrained(model_name_or_path).decoder
         self.decoder = T5Decoder(decoder, self.config).eval()
+
+        self._warmup_onnx_graph()
 
     @torch.no_grad()
     def __call__(
@@ -243,3 +245,16 @@ class OnnxT5(GenerationMixin):
 
             reordered_decoder_past = reordered_decoder_past + (reordered_layer_past_states,)
         return reordered_decoder_past
+
+    def _warmup_onnx_graph(self):
+        input_ids = torch.ones(1, 512, dtype=torch.long)
+        attention_mask = torch.ones(1, 512, dtype=torch.long)
+        for _ in range(10):
+            encoder_outputs = self._encoder_forward(
+                input_ids=input_ids, attention_mask=attention_mask
+            ).last_hidden_state
+
+        decoder_output, _ = self.decoder(input_ids, encoder_outputs, attention_mask)
+        inputs = {"decoder_output": decoder_output.cpu().detach().numpy()}
+        for _ in range(10):
+            self.lm_sess.run(None, inputs)
