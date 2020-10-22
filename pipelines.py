@@ -133,8 +133,8 @@ class QGPipeline:
         inputs = []
         for i, answer in enumerate(answers):
             if len(answer) == 0: continue
-            sent = sents[i]
             for answer_text in answer:
+                sent = sents[i]
                 sents_copy = sents[:]
                 
                 answer_text = answer_text.strip()
