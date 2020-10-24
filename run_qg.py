@@ -80,14 +80,14 @@ class ModelArguments:
         metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
     model_type: str = field(metadata={"help": "One of 't5', 'bart'"})
+    config_name: Optional[str] = field(
+        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+    )
     tokenizer_name_or_path: Optional[str] = field(
         default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
     )
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
-    )
-    label_smoothing: Optional[float] = field(
-        default=0, metadata={"help": "label smoothing rate, set to > 0 if you want to enable lable smoothing"}
     )
     freeze_encoder: bool = field(default=False, metadata={"help": "Whether tp freeze the encoder."})
     freeze_embeds: bool = field(default=False, metadata={"help": "Whether  to freeze the embeddings."})
@@ -127,6 +127,10 @@ class DataTrainingArguments:
         default=32,
         metadata={"help": "Max input length for the target text"},
     )
+    ignore_pad_token_for_loss: bool = field(
+        default=False,
+        metadata={"help": "If only pad tokens should be ignored. This assumes that `config.pad_token_id` is defined."},
+    )
 
 
 def main(args_file=None):
@@ -134,7 +138,7 @@ def main(args_file=None):
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, Seq2SeqTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
 
     if (len(sys.argv) == 2 and sys.argv[1].endswith(".json")) or args_file is not None:
         # If we pass only one argument to the script and it's the path to a json file,
