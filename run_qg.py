@@ -1,3 +1,6 @@
+# adapted from https://github.com/huggingface/transformers/blob/master/examples/seq2seq/finetune_trainer.py
+
+
 import dataclasses
 import json
 import logging
@@ -12,6 +15,7 @@ import torch
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
+    AutoConfig,
     T5Tokenizer,
     BartTokenizer,
     HfArgumentParser,
@@ -20,9 +24,8 @@ from transformers import (
     set_seed,
 )
 
-from trainer import Trainer
-from data_collator import T2TDataCollator
-from utils import freeze_embeds, assert_not_all_frozen
+from seq2seq_trainer import Seq2SeqTrainer
+from utils import freeze_embeds, freeze_params, assert_all_frozen, T2TDataCollator
 
 MODEL_TYPE_TO_TOKENIZER = {
     "t5": T5Tokenizer,
@@ -31,6 +34,40 @@ MODEL_TYPE_TO_TOKENIZER = {
 
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class Seq2SeqTrainingArguments(TrainingArguments):
+    """
+    Parameters:
+        label_smoothing (:obj:`float`, `optional`, defaults to 0):
+            The label smoothing epsilon to apply (if not zero).
+        sortish_sampler (:obj:`bool`, `optional`, defaults to :obj:`False`):
+            Whether to SortishSamler or not. It sorts the inputs according to lenghts in-order to minimizing the padding size.
+        predict_with_generate (:obj:`bool`, `optional`, defaults to :obj:`False`):
+            Whether to use generate to calculate generative metrics (ROUGE, BLEU).
+    """
+
+    label_smoothing: Optional[float] = field(
+        default=0.0, metadata={"help": "The label smoothing epsilon to apply (if not zero)."}
+    )
+    sortish_sampler: bool = field(default=False, metadata={"help": "Whether to SortishSamler or not."})
+    predict_with_generate: bool = field(
+        default=False, metadata={"help": "Whether to use generate to calculate generative metrics (ROUGE, BLEU)."}
+    )
+    adafactor: bool = field(default=False, metadata={"help": "whether to use adafactor"})
+    encoder_layerdrop: Optional[float] = field(
+        default=None, metadata={"help": "Encoder layer dropout probability. Goes into model.config."}
+    )
+    decoder_layerdrop: Optional[float] = field(
+        default=None, metadata={"help": "Decoder layer dropout probability. Goes into model.config."}
+    )
+    dropout: Optional[float] = field(default=None, metadata={"help": "Dropout probability. Goes into model.config."})
+    attention_dropout: Optional[float] = field(
+        default=None, metadata={"help": "Attention dropout probability. Goes into model.config."}
+    )
+    lr_scheduler: Optional[str] = field(
+        default="linear", metadata={"help": f"Which lr scheduler to use. Selected in {arg_to_scheduler_choices}"}
+    )
 
 
 @dataclass
@@ -53,10 +90,8 @@ class ModelArguments:
         default=0,
         metadata={"help": "label smoothing rate, set to > 0 if you want to enable lable smoothing"}
     )
-    freeze_embeds: bool = field(
-        default=False,
-        metadata={"help": "Freeze token embeddings and positional embeddings for bart, just token embeddings for t5."}
-    )
+    freeze_encoder: bool = field(default=False, metadata={"help": "Whether tp freeze the encoder."})
+    freeze_embeds: bool = field(default=False, metadata={"help": "Whether  to freeze the embeddings."})
 
 @dataclass
 class DataTrainingArguments:
@@ -96,7 +131,7 @@ def main(args_file=None):
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, Seq2SeqTrainingArguments, TrainingArguments))
 
     if (len(sys.argv) == 2 and sys.argv[1].endswith(".json")) or args_file is not None:
         # If we pass only one argument to the script and it's the path to a json file,
@@ -145,6 +180,18 @@ def main(args_file=None):
     # Distributed training:
     # The .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
+
+    config = AutoConfig.from_pretrained(
+        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir,
+    )
+
+    extra_model_params = ("encoder_layerdrop", "decoder_layerdrop", "dropout", "attention_dropout")
+    for p in extra_model_params:
+        if getattr(training_args, p, None):
+            assert hasattr(config, p), f"({config.__class__.__name__}) doesn't have a `{p}` attribute"
+            setattr(config, p, getattr(training_args, p))
+
     tokenizer_cls = MODEL_TYPE_TO_TOKENIZER[model_args.model_type]
     tokenizer = tokenizer_cls.from_pretrained(
         model_args.tokenizer_name_or_path if model_args.tokenizer_name_or_path else model_args.model_name_or_path,
@@ -158,9 +205,10 @@ def main(args_file=None):
     model.resize_token_embeddings(len(tokenizer))
 
     if model_args.freeze_embeds:
-        logger.info("freezing embeddings of the model")
         freeze_embeds(model)
-        assert_not_all_frozen(model)
+    if model_args.freeze_encoder:
+        freeze_params(model.get_encoder())
+        assert_all_frozen(model.get_encoder())
 
     # Get datasets
     logger.info('loading dataset')
@@ -186,7 +234,8 @@ def main(args_file=None):
         eval_dataset=valid_dataset,
         data_collator=data_collator,
         prediction_loss_only=True,
-        label_smoothing=model_args.label_smoothing
+        data_args=data_args,
+        config=config,
     )
 
     # disable wandb console logs
