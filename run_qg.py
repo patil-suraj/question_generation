@@ -230,7 +230,7 @@ def main(args_file=None):
     )
 
     # Initialize our Trainer
-    trainer = Trainer(
+    trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
