@@ -23,7 +23,7 @@ from transformers import (
     set_seed,
 )
 
-from seq2seq_trainer import Seq2SeqTrainer
+from seq2seq_trainer import Seq2SeqTrainer, arg_to_scheduler_choices
 from utils import T2TDataCollator, assert_all_frozen, freeze_embeds, freeze_params
 
 MODEL_TYPE_TO_TOKENIZER = {
