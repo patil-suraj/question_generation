@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
-from data_collator import T2TDataCollator
+from utils import T2TDataCollator
 from tqdm.auto import tqdm
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, HfArgumentParser
 
