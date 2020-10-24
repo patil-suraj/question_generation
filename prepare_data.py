@@ -1,12 +1,11 @@
-import os
 import logging
+import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-import torch
 import nlp
-from transformers import T5Tokenizer, BartTokenizer, HfArgumentParser
-
+import torch
+from transformers import BartTokenizer, HfArgumentParser, T5Tokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +15,16 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
+
     task: str = field(
-        metadata={"help": "Which task 'qa', 'qg', 'e2e_qg', 'ans_ext', 'multi'. 'multi' means 'qa', 'qg', 'ans_ext' tasks"}, 
+        metadata={
+            "help": "Which task 'qa', 'qg', 'e2e_qg', 'ans_ext', 'multi'. 'multi' means 'qa', 'qg', 'ans_ext' tasks"
+        },
     )
     model_type: str = field(metadata={"help": "One of 't5', 'bart'"})
     dataset_path: Optional[str] = field(
         default="data/squad_multitask",
-        metadata={"help": "Path for dataset directory"}, 
+        metadata={"help": "Path for dataset directory"},
     )
     train_file_name: Optional[str] = field(
         default=None,
@@ -33,12 +35,11 @@ class DataTrainingArguments:
         metadata={"help": "name for cached valid dataset"},
     )
     valid_for_qg_only: bool = field(
-        default=False,
-        metadata={"help": "For multitask dataset valid split should contain only qg task or all tasks."}
+        default=False, metadata={"help": "For multitask dataset valid split should contain only qg task or all tasks."}
     )
     qg_format: Optional[str] = field(
-        default='highlight_qg_format',
-        metadata={"help": "How to format inputs for que generation, 'highlight_qg_format' or 'prepend_qg_format'"}, 
+        default="highlight_qg_format",
+        metadata={"help": "How to format inputs for que generation, 'highlight_qg_format' or 'prepend_qg_format'"},
     )
     max_source_length: Optional[int] = field(
         default=512,
@@ -49,6 +50,7 @@ class DataTrainingArguments:
         metadata={"help": "Max input length for the target text"},
     )
 
+
 class DataProcessor:
     def __init__(self, tokenizer, model_type="t5", max_source_length=512, max_target_length=32):
         self.tokenizer = tokenizer
@@ -56,64 +58,68 @@ class DataProcessor:
         self.max_target_length = max_target_length
         self.model_type = model_type
         self.hl_token = "<hl>"
-        
+
         if model_type == "t5":
             self.sep_token = "<sep>"
         elif model_type == "bart":
             self.sep_token = "<sep>"
         else:
             self.sep_token = "[SEP]"
-  
+
     def process(self, dataset):
         dataset = dataset.map(self._add_special_tokens)
         dataset = dataset.map(self._convert_to_features, batched=True)
         return dataset
-  
+
     def _add_special_tokens(self, example):
-        example['source_text'] = example['source_text'].replace("{hl_token}", self.hl_token)    
-        example['target_text'] = example['target_text'].replace("{sep_token}", self.sep_token)
+        example["source_text"] = example["source_text"].replace("{hl_token}", self.hl_token)
+        example["target_text"] = example["target_text"].replace("{sep_token}", self.sep_token)
         return example
-  
+
     # tokenize the examples
     def _convert_to_features(self, example_batch):
         encodings = self.tokenizer.prepare_seq2seq_batch(
-            src_texts=example_batch['source_text'],
-            tgt_texts=example_batch['target_text'],
+            src_texts=example_batch["source_text"],
+            tgt_texts=example_batch["target_text"],
             max_length=self.max_source_length,
             max_target_length=self.max_target_length,
-            padding='max_length',
+            padding="max_length",
             truncation=True,
         )
         encodings = {
-            'source_ids': encodings['input_ids'], 
-            'target_ids': encodings['labels'],
-            'attention_mask': encodings['attention_mask'],
+            "source_ids": encodings["input_ids"],
+            "target_ids": encodings["labels"],
+            "attention_mask": encodings["attention_mask"],
         }
         return encodings
 
 
 def filter_qa(example):
-    return example['task'] == 'qa'
+    return example["task"] == "qa"
+
 
 def filter_qg(example):
-    return example['task'] == 'qg'
+    return example["task"] == "qg"
+
 
 def filter_e2e_qg(example):
-    return example['task'] == 'e2e_qg'
+    return example["task"] == "e2e_qg"
+
 
 def filter_ans_ext(example):
-    return example['task'] == 'ans_ext'
+    return example["task"] == "ans_ext"
+
 
 def filter_multi(example):
-    return example['task'] != 'e2e_qg'
+    return example["task"] != "e2e_qg"
 
 
 TASK_TO_FILTER_FN = {
-    'qa': filter_qa,
-    'qg': filter_qg,
-    'e2e_qg': filter_e2e_qg,
-    'ans_ext': filter_ans_ext,
-    'multi': filter_multi
+    "qa": filter_qa,
+    "qg": filter_qg,
+    "e2e_qg": filter_e2e_qg,
+    "ans_ext": filter_ans_ext,
+    "multi": filter_multi,
 }
 
 
@@ -125,16 +131,16 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO
+        level=logging.INFO,
     )
 
-    if data_args.model_type == 't5':
+    if data_args.model_type == "t5":
         tokenizer = T5Tokenizer.from_pretrained("t5-base")
     else:
         tokenizer = T5Tokenizer.from_pretrained("bart-base")
-    
-    tokenizer.add_tokens(['<sep>', '<hl>'])
-    
+
+    tokenizer.add_tokens(["<sep>", "<hl>"])
+
     train_dataset = nlp.load_dataset(data_args.dataset_path, name=data_args.qg_format, split=nlp.Split.TRAIN)
     valid_dataset = nlp.load_dataset(data_args.dataset_path, name=data_args.qg_format, split=nlp.Split.VALIDATION)
 
@@ -142,23 +148,22 @@ def main():
         tokenizer,
         model_type=data_args.model_type,
         max_source_length=data_args.max_source_length,
-        max_target_length=data_args.max_target_length
+        max_target_length=data_args.max_target_length,
     )
 
     train_dataset = train_dataset.filter(TASK_TO_FILTER_FN[data_args.task])
-    if data_args.task == 'multi' and data_args.valid_for_qg_only:
+    if data_args.task == "multi" and data_args.valid_for_qg_only:
         logger.info("processing valid data only for qg task")
         valid_dataset = valid_dataset.filter(filter_qg)
     else:
         valid_dataset = valid_dataset.filter(TASK_TO_FILTER_FN[data_args.task])
 
-    
     train_dataset = processor.process(train_dataset)
     valid_dataset = processor.process(valid_dataset)
 
     columns = ["source_ids", "target_ids", "attention_mask"]
-    train_dataset.set_format(type='torch', columns=columns)
-    valid_dataset.set_format(type='torch', columns=columns)
+    train_dataset.set_format(type="torch", columns=columns)
+    valid_dataset.set_format(type="torch", columns=columns)
 
     if data_args.train_file_name is None:
         train_file_name = f"train_data_{data_args.task}_{data_args.qg_format}_{data_args.model_type}.pt"
@@ -169,13 +174,13 @@ def main():
     else:
         train_path = os.path.join("data", data_args.train_file_name)
         valid_path = os.path.join("data", data_args.valid_file_name)
-    
+
     torch.save(train_dataset, train_path)
     logger.info(f"saved train dataset at {train_path}")
-    
+
     torch.save(valid_dataset, valid_path)
     logger.info(f"saved validation dataset at {valid_path}")
-    
+
     tokenizer_path = f"{data_args.model_type}_qg_tokenizer"
     if not os.path.exists(tokenizer_path):
         os.mkdir(tokenizer_path)
@@ -185,4 +190,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -6,7 +6,6 @@ from typing import Any, Dict, Optional, Tuple, Union
 import torch
 from torch import nn
 from torch.utils.data import DistributedSampler, RandomSampler
-
 from transformers import PreTrainedModel, Trainer, logging
 from transformers.configuration_fsmt import FSMTConfig
 from transformers.file_utils import is_torch_tpu_available
@@ -21,7 +20,6 @@ from transformers.optimization import (
     get_polynomial_decay_schedule_with_warmup,
 )
 from transformers.trainer_pt_utils import get_tpu_sampler
-
 
 try:
     from .utils import label_smoothed_nll_loss

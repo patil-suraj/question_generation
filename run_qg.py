@@ -11,21 +11,20 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-
 from transformers import (
+    AutoConfig,
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
-    AutoConfig,
-    T5Tokenizer,
     BartTokenizer,
-    HfArgumentParser,
     DataCollator,
+    HfArgumentParser,
+    T5Tokenizer,
     TrainingArguments,
     set_seed,
 )
 
 from seq2seq_trainer import Seq2SeqTrainer
-from utils import freeze_embeds, freeze_params, assert_all_frozen, T2TDataCollator
+from utils import T2TDataCollator, assert_all_frozen, freeze_embeds, freeze_params
 
 MODEL_TYPE_TO_TOKENIZER = {
     "t5": T5Tokenizer,
@@ -34,6 +33,7 @@ MODEL_TYPE_TO_TOKENIZER = {
 
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Seq2SeqTrainingArguments(TrainingArguments):
@@ -87,17 +87,18 @@ class ModelArguments:
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
     )
     label_smoothing: Optional[float] = field(
-        default=0,
-        metadata={"help": "label smoothing rate, set to > 0 if you want to enable lable smoothing"}
+        default=0, metadata={"help": "label smoothing rate, set to > 0 if you want to enable lable smoothing"}
     )
     freeze_encoder: bool = field(default=False, metadata={"help": "Whether tp freeze the encoder."})
     freeze_embeds: bool = field(default=False, metadata={"help": "Whether  to freeze the embeddings."})
+
 
 @dataclass
 class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
+
     train_file_path: str = field(
         metadata={"help": "Path for cached train dataset"},
     )
@@ -106,15 +107,17 @@ class DataTrainingArguments:
     )
     data_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Path for data files"}, 
+        metadata={"help": "Path for data files"},
     )
     task: Optional[str] = field(
         default=None,
-        metadata={"help": "Which task 'qa', 'qg', 'e2e_qg', 'ans_ext', 'multi'. 'multi' means 'qa', 'qg', 'ans_ext' tasks"}, 
+        metadata={
+            "help": "Which task 'qa', 'qg', 'e2e_qg', 'ans_ext', 'multi'. 'multi' means 'qa', 'qg', 'ans_ext' tasks"
+        },
     )
     qg_format: Optional[str] = field(
-        default='prepend_qg_format',
-        metadata={"help": "How to format inputs for que generation, 'highlight_qg_format' or 'prepend_qg_format'"}, 
+        default="prepend_qg_format",
+        metadata={"help": "How to format inputs for que generation, 'highlight_qg_format' or 'prepend_qg_format'"},
     )
     max_source_length: Optional[int] = field(
         default=512,
@@ -211,19 +214,19 @@ def main(args_file=None):
         assert_all_frozen(model.get_encoder())
 
     # Get datasets
-    logger.info('loading dataset')
-    
+    logger.info("loading dataset")
+
     train_dataset = torch.load(data_args.train_file_path) if training_args.do_train else None
     valid_dataset = torch.load(data_args.valid_file_path) if training_args.do_eval else None
-    
-    logger.info('finished loading dataset')
+
+    logger.info("finished loading dataset")
 
     # Initialize data_collator
     data_collator = T2TDataCollator(
         tokenizer=tokenizer,
         model_type=model_args.model_type,
         mode="training",
-        using_tpu=training_args.tpu_num_cores is not None
+        using_tpu=training_args.tpu_num_cores is not None,
     )
 
     # Initialize our Trainer
@@ -239,7 +242,7 @@ def main(args_file=None):
     )
 
     # disable wandb console logs
-    logging.getLogger('wandb.run_manager').setLevel(logging.WARNING)
+    logging.getLogger("wandb.run_manager").setLevel(logging.WARNING)
 
     # Training
     if training_args.do_train:
@@ -265,9 +268,9 @@ def main(args_file=None):
             for key in sorted(eval_output.keys()):
                 logger.info("  %s = %s", key, str(eval_output[key]))
                 writer.write("%s = %s\n" % (key, str(eval_output[key])))
-    
+
         results.update(eval_output)
-    
+
     return results
 
 
@@ -275,11 +278,13 @@ def _mp_fn(index):
     # For xla_spawn (TPUs)
     main()
 
+
 def run_qg(args_dict):
-    with open("args.json", 'w') as f:
+    with open("args.json", "w") as f:
         json.dump(args_dict, f)
-    
+
     main(args_file="args.json")
+
 
 if __name__ == "__main__":
     main()

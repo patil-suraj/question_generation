@@ -6,7 +6,7 @@ import torch
 from nltk import sent_tokenize
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
-from onnx_t5 import is_ort_available, OnnxT5
+from onnx_t5 import OnnxT5, is_ort_available
 
 logger = logging.getLogger(__name__)
 

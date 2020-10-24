@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 from psutil import cpu_count
-from transformers import T5ForConditionalGeneration, T5Tokenizer, T5Config
+from transformers import T5Config, T5ForConditionalGeneration, T5Tokenizer
 from transformers.generation_utils import GenerationMixin
 from transformers.modeling_outputs import BaseModelOutputWithPast, Seq2SeqLMOutput
 
@@ -14,12 +14,15 @@ from transformers.modeling_outputs import BaseModelOutputWithPast, Seq2SeqLMOutp
 os.environ["OMP_NUM_THREADS"] = str(cpu_count(logical=True))
 os.environ["OMP_WAIT_POLICY"] = "ACTIVE"
 
+
 def _is_ort_available():
     try:
         import onnxruntime
+
         return True
     except ImportError:
         return False
+
 
 is_ort_available = _is_ort_available()
 
