@@ -6,7 +6,7 @@ import torch
 from nltk import sent_tokenize
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
-from onnx_t5 import OnnxT5
+from onnx_t5 import is_ort_available, OnnxT5
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,6 @@ class QGPipeline:
             self.model.to(self.device)
             if self.ans_model is not self.model:
                 self.ans_model.to(self.device)
-
-        # assert self.model.__class__.__name__ in ["T5ForConditionalGeneration", "BartForConditionalGeneration"]
-
-        # if "T5ForConditionalGeneration" in self.model.__class__.__name__:
-        #     self.model_type = "t5"
-        # else:
-        #     self.model_type = "bart"
 
     def __call__(self, inputs: str):
         inputs = " ".join(inputs.split())
@@ -88,26 +81,25 @@ class QGPipeline:
         if not self.onnx:
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
-        outs = self.ans_model.generate(
+        tokens = self.ans_model.generate(
             input_ids=inputs["input_ids"],
             attention_mask=inputs["attention_mask"],
             max_length=32,
         )
 
-        dec = [self.ans_tokenizer.decode(ids, skip_special_tokens=False) for ids in outs]
+        dec = self.ans_tokenizer.batch_decode(tokens, skip_special_tokens=False)
         answers = [item.split("<sep>") for item in dec]
         answers = [i[:-1] for i in answers]
 
         return sents, answers
 
     def _tokenize(self, inputs, padding=True, truncation=True, add_special_tokens=True, max_length=512):
-        inputs = self.tokenizer.batch_encode_plus(
+        inputs = self.tokenizer(
             inputs,
             max_length=max_length,
             add_special_tokens=add_special_tokens,
             truncation=truncation,
-            padding="max_length" if padding else False,
-            pad_to_max_length=padding,
+            padding=padding,
             return_tensors="pt",
         )
         return inputs
@@ -131,7 +123,8 @@ class QGPipeline:
     def _prepare_inputs_for_qg_from_answers_hl(self, sents, answers):
         inputs = []
         for i, answer in enumerate(answers):
-            if len(answer) == 0: continue
+            if len(answer) == 0:
+                continue
             for answer_text in answer:
                 sent = sents[i]
                 sents_copy = sents[:]
@@ -260,13 +253,12 @@ class E2EQGPipeline:
         return inputs
 
     def _tokenize(self, inputs, padding=True, truncation=True, add_special_tokens=True, max_length=512):
-        inputs = self.tokenizer.batch_encode_plus(
+        inputs = self.tokenizer(
             inputs,
             max_length=max_length,
             add_special_tokens=add_special_tokens,
             truncation=truncation,
-            padding="max_length" if padding else False,
-            pad_to_max_length=padding,
+            padding=padding,
             return_tensors="pt",
         )
         return inputs
@@ -312,7 +304,8 @@ def pipeline(
         raise KeyError("Unknown task {}, available tasks are {}".format(task, list(SUPPORTED_TASKS.keys())))
 
     if onnx:
-        assert onnx_path is not None, "`onnx_path` can't be `None` when `onnx` is set to `True`"
+        assert is_ort_available, "`onnxruntime` is not installed."
+        assert onnx_path is not None, "`onnx_path` can't be `None` when `onnx` is set to `True`."
 
     targeted_task = SUPPORTED_TASKS[task]
     task_class = targeted_task["impl"]

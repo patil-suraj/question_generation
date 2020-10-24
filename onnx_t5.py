@@ -14,7 +14,17 @@ from transformers.modeling_outputs import BaseModelOutputWithPast, Seq2SeqLMOutp
 os.environ["OMP_NUM_THREADS"] = str(cpu_count(logical=True))
 os.environ["OMP_WAIT_POLICY"] = "ACTIVE"
 
-from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions, get_all_providers
+def _is_ort_available():
+    try:
+        import onnxruntime
+        return True
+    except ImportError:
+        return False
+
+is_ort_available = _is_ort_available()
+
+if is_ort_available:
+    from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions, get_all_providers
 
 ONNX_CACHE_DIR = Path(os.path.dirname(__file__)).parent.joinpath(".onnx")
 logger = logging.getLogger(__name__)
