@@ -231,6 +231,7 @@ def main(args_file=None):
         model_type=model_args.model_type,
         mode="training",
         using_tpu=training_args.tpu_num_cores is not None,
+        label_smoothing=training_args.label_smoothing > 0,
     )
 
     # Initialize our Trainer

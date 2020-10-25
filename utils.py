@@ -86,11 +86,12 @@ def trim_batch(
 # this is necessacry because the trainer directly passes this dict as arguments to the model
 # so make sure the keys match the parameter names of the forward method
 class T2TDataCollator:
-    def __init__(self, tokenizer, model_type="t5", mode="training", using_tpu=False):
+    def __init__(self, tokenizer, model_type="t5", mode="training", using_tpu=False, label_smoothing=False):
         self.tokenizer = tokenizer
         self.model_type = model_type
         self.mode = mode
         self.using_tpu = using_tpu
+        self.label_smoothing = label_smoothing
 
     def __call__(self, batch: List) -> Dict[str, torch.Tensor]:
         """
@@ -112,12 +113,12 @@ class T2TDataCollator:
         if self.model_type == "t5":
             lm_labels = target_ids.clone()
             decoder_input_ids = self._shift_right_t5(lm_labels)
-            if self.mode == "training":
+            if self.mode == "training" and not self.label_smoothing:
                 lm_labels[lm_labels[:, :] == pad_token_id] = -100
         else:
             decoder_input_ids = target_ids[:, :-1].contiguous()
             lm_labels = target_ids[:, 1:].clone()
-            if self.mode == "training":
+            if self.mode == "training" and not self.label_smoothing:
                 lm_labels[target_ids[:, 1:] == pad_token_id] = -100
 
         params = {
