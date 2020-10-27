@@ -138,7 +138,8 @@ class QGPipeline:
                 sents_copy = sents[:]
                 
                 answer_text = answer_text.strip()
-                
+                print("ANSWER ",answer_text)
+                print("TEXT",sent)
                 ans_start_idx = sent.index(answer_text)
                 
                 sent = f"{sent[:ans_start_idx]} <hl> {answer_text} <hl> {sent[ans_start_idx + len(answer_text): ]}"
