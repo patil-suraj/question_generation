@@ -8,6 +8,8 @@
     - [Multitask QA-QG](#multitask-qa-qg)
     - [End-to-End question generation (answer agnostic)](#end-to-end-question-generation-answer-agnostic)
   - [Results](#results)
+    - [Baseline models](#baseline-models)
+    - [Distilled models](#distilled-models)
   - [Requirements](#requirements)
   - [Usage](#usage)
       - [Question Generation](#question-generation)
@@ -119,6 +121,8 @@ For multitask qa-qg models the EM and F1 scores are privded as QA-EM and QA-F1.
 
 The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculating the metrics.
 
+### Baseline models
+
 
 | Name                                                                       | BLEU-4  | METEOR  | ROUGE-L | QA-EM  | QA-F1  | QG-FORMAT |
 |----------------------------------------------------------------------------|---------|---------|---------|--------|--------|-----------|
@@ -127,6 +131,15 @@ The [nlg-eval](https://github.com/Maluuba/nlg-eval) package is used for calculat
 | [t5-small-qa-qg-hl](https://huggingface.co/valhalla/t5-small-qa-qg-hl)     | 18.9872 | 25.2217 | 40.7893 | 76.121 | 84.904 | highlight |
 | [t5-small-qg-hl](https://huggingface.co/valhalla/t5-small-qg-hl)           | 18.5921 | 24.9915 | 40.1886 | -      | -      | highlight |
 | [t5-small-qg-prepend](https://huggingface.co/valhalla/t5-small-qg-prepend) | 18.2791 | 24.6722 | 39.958  | -      | -      | prepend   |
+
+### Distilled models
+
+| Name                                                                            | BLEU-4  | METEOR  | ROUGE-L | QA-EM  | QA-F1  | BASELINE MODEL     |
+|---------------------------------------------------------------------------------|---------|---------|---------|--------|--------|--------------------|
+| [distilt5-qg-hl-6-4](https://huggingface.co/valhalla/distilt5-qg-hl-6-4)        | 18.4141 | 24.8417 | 40.3435 | -      | -      | `t5-small-qa-qg-hl` |
+| [distilt5-qa-qg-hl-6-4](https://huggingface.co/valhalla/distilt5-qa-qg-hl-6-4)  | 18.6493 | 24.9685 | 40.5605 | 76.13  | 84.659 | `t5-small-qa-qg-hl` |
+| [distilt5-qg-hl-12-6](https://huggingface.co/valhalla/distilt5-qg-hl-12-6)      | 20.5275 | 26.5010 | 43.2676 | -      | -      | `t5-base-qg-hl`    |
+| [distilt5-qa-qg-hl-12-6](https://huggingface.co/valhalla/distilt5-qa-qg-hl-12-6)| 20.6109 | 26.4533 | 43.0895 | 81.61  | 89.831 | `t5-base-qa-qg-hl` |
 
 
 ## Requirements
