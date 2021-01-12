@@ -148,7 +148,7 @@ def main():
     if data_args.model_type == 't5':
         tokenizer = T5Tokenizer.from_pretrained("t5-base")
     else:
-        tokenizer = T5Tokenizer.from_pretrained("bart-base")
+        tokenizer = T5Tokenizer.from_pretrained("facebook/bart-base")
     
     tokenizer.add_tokens(['<sep>', '<hl>'])
     
