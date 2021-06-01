@@ -138,8 +138,10 @@ class QGPipeline:
                 sents_copy = sents[:]
                 
                 answer_text = answer_text.strip().lower()
-                
-                ans_start_idx = sent.index(answer_text)
+                try:
+                    ans_start_idx = sent.index(answer_text)
+                except (ValueError,AssertionError):
+                    continue
                 
                 sent = f"{sent[:ans_start_idx]} <hl> {answer_text} <hl> {sent[ans_start_idx + len(answer_text): ]}"
                 sents_copy[i] = sent
