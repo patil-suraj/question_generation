@@ -1,2 +1,5 @@
 *.pt
 __pycache__
+Pipfile*
+wandb*
+prepare.sh

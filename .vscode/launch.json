@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Prepare dataset (doctor)",
+            "type": "python",
+            "request": "launch",
+            "program": "prepare_data.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--task=e2e_qg",
+                "--valid_for_qg_only",
+                "--model_type=t5",
+                "--dataset_path=data/doctor/",
+                "--qg_format=highlight_qg_format",
+                "--max_source_length=512",
+                "--max_target_length=32",
+                "--train_file_name=doctor_train_data_e2e_qg_t5.pt",
+                "--valid_file_name=doctor_valid_data_e2e_qg_t5.pt",
+            ]
+        },
+        {
+            "name": "Prepare dataset (patient)",
+            "type": "python",
+            "request": "launch",
+            "program": "prepare_data.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--task=e2e_qg",
+                "--valid_for_qg_only",
+                "--model_type=t5",
+                "--dataset_path=data/patient/",
+                "--qg_format=highlight_qg_format",
+                "--max_source_length=512",
+                "--max_target_length=32",
+                "--train_file_name=patient_train_data_e2e_qg_t5.pt",
+                "--valid_file_name=patient_valid_data_e2e_qg_t5.pt",
+            ]
+        }
+    ]
+}
