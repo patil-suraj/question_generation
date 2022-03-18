@@ -177,6 +177,9 @@ def main(args_file=None):
         mode="training",
         using_tpu=training_args.tpu_num_cores is not None
     )
+    
+    # Prediction Loss
+    training_args.prediction_loss_only=True,
 
     # Initialize our Trainer
     trainer = Trainer(
@@ -185,7 +188,6 @@ def main(args_file=None):
         train_dataset=train_dataset,
         eval_dataset=valid_dataset,
         data_collator=data_collator,
-        prediction_loss_only=True,
         label_smoothing=model_args.label_smoothing
     )
 
@@ -200,7 +202,7 @@ def main(args_file=None):
         trainer.save_model()
         # For convenience, we also re-save the tokenizer to the same directory,
         # so that you can share your model easily on huggingface.co/models =)
-        if trainer.is_world_master():
+        if trainer.is_world_process_zero():
             tokenizer.save_pretrained(training_args.output_dir)
 
     # Evaluation
