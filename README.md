@@ -103,7 +103,7 @@ T5 model is fine-tuned in multi-task way using task prefixes as described in the
 
 ### End-to-End question generation (answer agnostic)
 
-In end-to-end question generation the model is aksed to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discusses these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just providing the context. The questions are seperated by the `<sep>` token. Here's how the examples are processed
+In end-to-end question generation the model is asked to generate questions without providing the answers. [This](https://arxiv.org/pdf/2005.01107v1.pdf) paper discusses these ideas in more detail. Here the T5 model is trained to generate multiple questions simultaneously by just providing the context. The questions are seperated by the `<sep>` token. Here's how the examples are processed
 
 input text: `Python is a programming language. Created by Guido van Rossum and first released in 1991.`
 
