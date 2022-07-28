@@ -342,6 +342,7 @@ nlg-eval --hypothesis=hypothesis_t5-base-qg-hl.txt --references=data/references.
 
 1. A simple Trivia Quiz on topics of your choice - <br/>
    [Medium article](https://medium.com/@nvarshney97/using-the-latest-nlp-techniques-for-fun-98f31ce7b556) and its [Colab Notebook](https://colab.research.google.com/gist/nrjvarshney/39ed6c80e2fe293b9e7eca5bc3a45b7d/quiz.ipynb)
+2. [Autocards, Accelerating learning through machine-generated flashcards](https://paulbricman.com/docs/tools/autocards/)
 
 ## Relevant papers
 - https://arxiv.org/abs/1906.05416
