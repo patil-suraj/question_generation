@@ -1,0 +1,5 @@
+nlp==0.4.0
+nltk==3.7 # only if you want to fine tune ... reference readme.md for more info
+protobuf==3.20.0
+sentencepiece==0.1.98
+transformers==3.0.0
