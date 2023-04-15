@@ -137,6 +137,7 @@ class QGPipeline:
                 sent = sents[i]
                 sents_copy = sents[:]
                 
+                answer_text = answer_text.strip('<pad>')
                 answer_text = answer_text.strip()
                 
                 ans_start_idx = sent.index(answer_text)
@@ -341,9 +342,9 @@ def pipeline(
     if isinstance(tokenizer, (str, tuple)):
         if isinstance(tokenizer, tuple):
             # For tuple we have (tokenizer name, {kwargs})
-            tokenizer = AutoTokenizer.from_pretrained(tokenizer[0], **tokenizer[1])
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer[0], **tokenizer[1], use_fast=False)
         else:
-            tokenizer = AutoTokenizer.from_pretrained(tokenizer)
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer, use_fast=False)
     
     # Instantiate model if needed
     if isinstance(model, str):
@@ -353,7 +354,7 @@ def pipeline(
         if ans_model is None:
             # load default ans model
             ans_model = targeted_task["default"]["ans_model"]
-            ans_tokenizer = AutoTokenizer.from_pretrained(ans_model)
+            ans_tokenizer = AutoTokenizer.from_pretrained(ans_model, use_fast=False)
             ans_model = AutoModelForSeq2SeqLM.from_pretrained(ans_model)
         else:
             # Try to infer tokenizer from model or config name (if provided as str)
